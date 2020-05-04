@@ -1,6 +1,8 @@
 FROM maven:3.6.3-openjdk-11
 WORKDIR app
 COPY sc-application ./sc-application
+COPY sc-common ./sc-common
+COPY sc-mysql ./sc-mysql
 COPY pom.xml ./
 
 ENV MYSQL_DB_HOST name
