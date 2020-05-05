@@ -21,7 +21,7 @@ public class ShoppingCardItem implements Comparable<ShoppingCardItem> {
     @Getter
     @Setter
     @ManyToOne(targetEntity = ShoppingCard.class)
-    @JoinColumn(name = "shoppingCard")
+    @JoinColumn(name = "shopping_card_id")
     private ShoppingCard shoppingCard;
 
     @Getter

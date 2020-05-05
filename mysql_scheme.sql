@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS shopping;
 
-create user 'shopping'@'%' identified by 'shopping';
+create user if not exists 'shopping'@'%' identified by 'shopping';
 grant all on shopping.* to 'shopping'@'%';
 
 USE shopping;
@@ -17,5 +17,5 @@ CREATE TABLE shopping_card_item (
   book_id          BIGINT NOT NULL,
   quantity        BIGINT NOT NULL,
   create_date      DATE NOT NULL,
-  FOREIGN KEY (shoppingCardId) REFERENCES shopping_card(id)
+  FOREIGN KEY (shopping_card_id) REFERENCES shopping_card(id)
 );
