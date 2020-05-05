@@ -26,7 +26,7 @@ public class ShoppingCardItem implements Comparable<ShoppingCardItem> {
 
     @Getter
     @Setter
-    @Column(name = "bookId")
+    @Column(name = "book_id")
     private Long bookId;
 
     @NotNull
@@ -38,7 +38,7 @@ public class ShoppingCardItem implements Comparable<ShoppingCardItem> {
     @NotNull
     @Getter
     @Setter
-    @Column(name = "createDate")
+    @Column(name = "create_date")
     private java.time.LocalDate createDate;
 
     @Override
