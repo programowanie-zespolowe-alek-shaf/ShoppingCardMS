@@ -1,9 +1,9 @@
+DROP ALL OBJECTS;
+
+DROP SCHEMA IF EXISTS shopping;
 CREATE SCHEMA IF NOT EXISTS shopping;
 
-create user if not exists 'shopping'@'%' identified by 'shopping';
-grant all on shopping.* to 'shopping'@'%';
-
-USE shopping;
+SET SCHEMA shopping;
 
 CREATE TABLE shopping_card
 (
