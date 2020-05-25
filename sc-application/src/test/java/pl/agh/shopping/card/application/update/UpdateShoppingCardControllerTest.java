@@ -1,7 +1,9 @@
 package pl.agh.shopping.card.application.update;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,12 +15,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.agh.shopping.card.application.dto.ShoppingCardRequestDTO;
+import pl.agh.shopping.card.application.rest.MicroService;
+import pl.agh.shopping.card.application.rest.RestClient;
 import pl.agh.shopping.card.application.rest.url.URLProvider;
 import pl.agh.shopping.card.mysql.entity.ShoppingCard;
 import pl.agh.shopping.card.mysql.repository.ShoppingCardRepository;
 
 import java.nio.charset.Charset;
 import java.time.LocalDate;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,13 +44,28 @@ public class UpdateShoppingCardControllerTest {
     @Autowired
     private ShoppingCardRepository shoppingCardRepository;
     @MockBean
-    private URLProvider urlProvider;
+    private RestClient restClient;
 
     private static final MediaType APPLICATION_JSON_UTF8 = new MediaType(MediaType.APPLICATION_JSON.getType(),
             MediaType.APPLICATION_JSON.getSubtype(), Charset.forName("utf8"));
 
     @Test
     public void successUpdateTest() throws Exception {
+
+        Map<String, Object> book = ImmutableMap.<String, Object>builder()
+                .put("id", 1)
+                .put("title", "Lalka")
+                .put("available", true)
+                .build();
+        Map<String, Object> book2 = ImmutableMap.<String, Object>builder()
+                .put("id", 2)
+                .put("title", "Dziady")
+                .put("available", true)
+                .build();
+
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/2", Map.class)).thenReturn(book2);
+
         ShoppingCard shoppingCardBefore = shoppingCardRepository.findById(1L).orElseThrow(null);
 
         ShoppingCardRequestDTO shoppingCardRequestDTO = new ShoppingCardRequestDTO();
@@ -58,13 +78,13 @@ public class UpdateShoppingCardControllerTest {
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("id").value("1"))
                 .andExpect(jsonPath("username").value("updatedUser1"))
-                .andExpect(jsonPath("createDate").value("2020-05-04"));
+                .andExpect(jsonPath("createDate").value(LocalDate.now().toString()));
 
         ShoppingCard shoppingCardAfter = shoppingCardRepository.findById(1L).orElse(null);
         assertNotNull(shoppingCardAfter);
         assertEquals(shoppingCardAfter.getId(), 1L, 0.01);
         assertEquals(shoppingCardAfter.getUsername(), "updatedUser1");
-        assertEquals(shoppingCardAfter.getCreateDate(), LocalDate.of(2020, 5, 4));
+        assertEquals(shoppingCardAfter.getCreateDate(), LocalDate.now());
 
         shoppingCardRepository.save(shoppingCardBefore);
     }

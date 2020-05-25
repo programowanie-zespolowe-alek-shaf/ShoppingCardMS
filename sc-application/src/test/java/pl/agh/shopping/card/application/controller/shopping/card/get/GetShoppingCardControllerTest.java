@@ -1,7 +1,9 @@
 package pl.agh.shopping.card.application.controller.shopping.card.get;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,8 +14,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import pl.agh.shopping.card.application.rest.MicroService;
+import pl.agh.shopping.card.application.rest.RestClient;
 import pl.agh.shopping.card.application.rest.url.EurekaURLProvider;
 import pl.agh.shopping.card.application.rest.url.URLProvider;
+
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,10 +34,24 @@ public class GetShoppingCardControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private URLProvider urlProvider;
+    private RestClient restClient;
 
     @Test
     public void successTest() throws Exception {
+        Map<String, Object> book = ImmutableMap.<String, Object>builder()
+                .put("id", 1)
+                .put("title", "Lalka")
+                .put("available", true)
+                .build();
+        Map<String, Object> book2 = ImmutableMap.<String, Object>builder()
+                .put("id", 2)
+                .put("title", "Dziady")
+                .put("available", true)
+                .build();
+
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/2", Map.class)).thenReturn(book2);
+
         mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1"))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("username").value("user1"))

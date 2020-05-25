@@ -1,7 +1,9 @@
 package pl.agh.shopping.card.application.update;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,11 +16,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.agh.shopping.card.application.config.TestUtils;
 import pl.agh.shopping.card.application.dto.ShoppingCardItemRequestDTO;
+import pl.agh.shopping.card.application.rest.MicroService;
+import pl.agh.shopping.card.application.rest.RestClient;
 import pl.agh.shopping.card.application.rest.url.URLProvider;
 import pl.agh.shopping.card.mysql.entity.ShoppingCardItem;
 import pl.agh.shopping.card.mysql.repository.ShoppingCardItemRepository;
 
 import java.nio.charset.Charset;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,13 +44,22 @@ public class UpdateShoppingCardItemControllerTest {
     @Autowired
     private ShoppingCardItemRepository shoppingCardItemRepository;
     @MockBean
-    private URLProvider urlProvider;
+    private RestClient restClient;
 
     private static final MediaType APPLICATION_JSON_UTF8 = new MediaType(MediaType.APPLICATION_JSON.getType(),
             MediaType.APPLICATION_JSON.getSubtype(), Charset.forName("utf8"));
 
     @Test
     public void successUpdateTest() throws Exception {
+
+        Map<String, Object> book = ImmutableMap.<String, Object>builder()
+                .put("id", 1)
+                .put("title", "Lalka")
+                .put("available", true)
+                .build();
+
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
+
         ShoppingCardItem shoppingCardItemBefore = shoppingCardItemRepository.findById(1L).orElseThrow(null);
 
         ShoppingCardItemRequestDTO shoppingCardItemRequestDTO = new ShoppingCardItemRequestDTO(1L, 11);

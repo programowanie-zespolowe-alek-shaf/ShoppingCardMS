@@ -1,7 +1,9 @@
 package pl.agh.shopping.card.application.controller.shopping.card.delete;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.agh.shopping.card.application.dto.ShoppingCardItemRequestDTO;
 import pl.agh.shopping.card.application.dto.ShoppingCardRequestDTO;
+import pl.agh.shopping.card.application.rest.MicroService;
+import pl.agh.shopping.card.application.rest.RestClient;
 import pl.agh.shopping.card.application.rest.url.URLProvider;
 import pl.agh.shopping.card.mysql.entity.ShoppingCard;
 import pl.agh.shopping.card.mysql.entity.ShoppingCardItem;
@@ -21,6 +25,7 @@ import pl.agh.shopping.card.mysql.repository.ShoppingCardItemRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,10 +47,22 @@ public class DeleteShoppingCardItemControllerTest {
     @Autowired
     private ShoppingCardItemRepository shoppingCardItemRepository;
     @MockBean
-    private URLProvider urlProvider;
+    private RestClient restClient;
 
     @Test
     public void createAndDeleteSuccessTest() throws Exception {
+
+
+
+        Map<String, Object> book = ImmutableMap.<String, Object>builder()
+                .put("id", 1)
+                .put("title", "Lalka")
+                .put("available", true)
+                .build();
+
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
+
+
         ShoppingCardItemRequestDTO shoppingCardItemRequestDTO = new ShoppingCardItemRequestDTO(1L, 1);
 
 
@@ -54,7 +71,7 @@ public class DeleteShoppingCardItemControllerTest {
         mvc.perform(MockMvcRequestBuilders.post("/shoppingCards/1/items/").contentType(APPLICATION_JSON_UTF8)
                 .content(requestJson))
                 .andExpect(status().is(201))
-                .andExpect(jsonPath("book_id").value("1"))
+                .andExpect(jsonPath("$.book.id").value("1"))
                 .andExpect(jsonPath("quantity").value("1"));
 
         List<ShoppingCardItem> all = shoppingCardItemRepository.findAll();
@@ -62,7 +79,7 @@ public class DeleteShoppingCardItemControllerTest {
         Long id = shoppingCardItem.getId();
 
         assertNotNull(shoppingCardItem);
-        assertEquals(1L, shoppingCardItem.getId(), 0.01);
+        assertEquals(1L, shoppingCardItem.getBookId(), 0.01);
         assertEquals(shoppingCardItem.getQuantity(), Integer.valueOf(1));
 
         mvc.perform(MockMvcRequestBuilders.delete("/shoppingCards/1/items/" + id))

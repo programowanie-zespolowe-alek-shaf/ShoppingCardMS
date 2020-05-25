@@ -1,7 +1,9 @@
 package pl.agh.shopping.card.application.controller.shopping.card.get;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,10 +13,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import pl.agh.shopping.card.application.rest.url.URLProvider;
+import pl.agh.shopping.card.application.rest.MicroService;
+import pl.agh.shopping.card.application.rest.RestClient;
+
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static pl.agh.shopping.card.application.config.TestUtils.mapObjectToStringJson;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest()
@@ -26,13 +32,23 @@ public class GetShoppingCardItemControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private URLProvider urlProvider;
+    private RestClient restClient;
 
     @Test
     public void successTest() throws Exception {
+
+        Map<String, Object> book = ImmutableMap.<String, Object>builder()
+                .put("id", 1)
+                .put("title", "Lalka")
+                .put("available", true)
+                .build();
+
+        Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
+
+
         mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1/items/1"))
                 .andExpect(status().is(200))
-                .andExpect(jsonPath("bookId").value("1"))
+                .andExpect(jsonPath("$.book.id").value("1"))
                 .andExpect(jsonPath("quantity").value("3"));
     }
 
