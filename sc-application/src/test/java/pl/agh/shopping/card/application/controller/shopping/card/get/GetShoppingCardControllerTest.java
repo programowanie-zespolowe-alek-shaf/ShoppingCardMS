@@ -10,14 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.agh.shopping.card.application.rest.MicroService;
 import pl.agh.shopping.card.application.rest.RestClient;
-import pl.agh.shopping.card.application.rest.url.EurekaURLProvider;
-import pl.agh.shopping.card.application.rest.url.URLProvider;
 
 import java.util.Map;
 
@@ -29,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @WithMockUser
+@Sql({"classpath:schema-shopping.sql", "classpath:data-shopping.sql"})
 public class GetShoppingCardControllerTest {
 
     @Autowired
@@ -54,8 +53,18 @@ public class GetShoppingCardControllerTest {
 
         mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1"))
                 .andExpect(status().is(200))
+                .andExpect(jsonPath("id").value("1"))
                 .andExpect(jsonPath("username").value("user1"))
-                .andExpect(jsonPath("createDate").value("2020-05-04"));
+                .andExpect(jsonPath("createDate").value("2020-05-04"))
+                .andExpect(jsonPath("items.list[0].id").value("1"))
+                .andExpect(jsonPath("items.list[0].book.id").value("1"))
+                .andExpect(jsonPath("items.list[0].book.title").value("Lalka"))
+                .andExpect(jsonPath("items.list[0].book.available").value("true"))
+                .andExpect(jsonPath("items.list[1].id").value("2"))
+                .andExpect(jsonPath("items.list[1].book.id").value("2"))
+                .andExpect(jsonPath("items.list[1].book.title").value("Dziady"))
+                .andExpect(jsonPath("items.list[1].book.available").value("true"))
+                .andExpect(jsonPath("items.count").value("2"));
     }
 
     @Test

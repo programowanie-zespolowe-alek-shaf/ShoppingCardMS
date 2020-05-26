@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -20,13 +21,13 @@ import java.util.Map;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static pl.agh.shopping.card.application.config.TestUtils.mapObjectToStringJson;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest()
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @WithMockUser
+@Sql({"classpath:schema-shopping.sql", "classpath:data-shopping.sql"})
 public class GetShoppingCardItemControllerTest {
 
     @Autowired

@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @WithMockUser
+@Sql({"classpath:schema-shopping.sql", "classpath:data-shopping.sql"})
 public class CreateShoppingCardControllerTest {
 
     private static final MediaType APPLICATION_JSON_UTF8 = new MediaType(MediaType.APPLICATION_JSON.getType(),
@@ -65,14 +67,18 @@ public class CreateShoppingCardControllerTest {
     }
 
     @Test
-    public void noUsernameFailedTest() throws Exception {
+    public void noUsernameSuccessTest() throws Exception {
         ShoppingCardRequestDTO shoppingCardRequestDTO = ShoppingCardRequestDTO.builder().build();
 
         String requestJson = TestUtils.mapObjectToStringJson(shoppingCardRequestDTO);
 
         mvc.perform(MockMvcRequestBuilders.post("/shoppingCards").contentType(APPLICATION_JSON_UTF8)
                 .content(requestJson))
-                .andExpect(status().is(400))
-                .andExpect(jsonPath("error").value("username cannot be null"));
+                .andExpect(status().is(201))
+                .andExpect(jsonPath("id").value("3"))
+                .andExpect(jsonPath("username").doesNotExist())
+                .andExpect(jsonPath("createDate").value(LocalDate.now().toString()))
+                .andExpect(jsonPath("items.count").value(0))
+                .andExpect(jsonPath("items.list").isEmpty());
     }
 }

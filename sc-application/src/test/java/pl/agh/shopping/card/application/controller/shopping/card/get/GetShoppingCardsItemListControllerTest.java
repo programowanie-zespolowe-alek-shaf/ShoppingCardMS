@@ -10,12 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import pl.agh.shopping.card.application.rest.MicroService;
 import pl.agh.shopping.card.application.rest.RestClient;
-import pl.agh.shopping.card.application.rest.url.URLProvider;
 
 import java.util.Map;
 
@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @WithMockUser
+@Sql({"classpath:schema-shopping.sql", "classpath:data-shopping.sql"})
 public class GetShoppingCardsItemListControllerTest {
 
     @Autowired
@@ -52,7 +53,6 @@ public class GetShoppingCardsItemListControllerTest {
 
     @Test
     public void onlyLimitAndOffsetTest() throws Exception {
-
 
 
         Map<String, Object> book = ImmutableMap.<String, Object>builder()
@@ -105,8 +105,7 @@ public class GetShoppingCardsItemListControllerTest {
 
         mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/11/items/")
                 .param("offset", "0")
-                .param("limit", "10")
-                .param("book.id", "3"))
+                .param("limit", "10"))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("list").isEmpty())
                 .andExpect(jsonPath("count").value("0"));

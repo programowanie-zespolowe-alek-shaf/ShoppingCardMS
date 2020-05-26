@@ -8,7 +8,7 @@ USE shopping;
 CREATE TABLE shopping_card
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    username    VARCHAR(45)                       NOT NULL,
+    username    VARCHAR(45),
     create_date DATE                              NOT NULL
 );
 

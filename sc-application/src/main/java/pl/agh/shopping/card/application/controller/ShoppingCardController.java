@@ -8,8 +8,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.agh.shopping.card.application.dto.ShoppingCardRequestDTO;
 import pl.agh.shopping.card.application.dto.ShoppingCardResponseDTO;
 import pl.agh.shopping.card.application.service.ShoppingCardService;
-import pl.agh.shopping.card.application.service.ValidationService;
-import pl.agh.shopping.card.common.exception.CustomException;
 import pl.agh.shopping.card.common.response.ListResponse;
 
 import java.net.URI;
@@ -22,12 +20,9 @@ import static pl.agh.shopping.card.common.util.ResponseFormat.APPLICATION_JSON;
 public class ShoppingCardController {
 
     private final ShoppingCardService shoppingCardService;
-    private final ValidationService validationService;
 
     @PostMapping(consumes = APPLICATION_JSON, produces = APPLICATION_JSON)
-    public ResponseEntity<?> addShoppingCard(@RequestBody ShoppingCardRequestDTO shoppingCardRequestDTO) throws CustomException {
-
-        validationService.validate(shoppingCardRequestDTO);
+    public ResponseEntity<?> addShoppingCard(@RequestBody ShoppingCardRequestDTO shoppingCardRequestDTO) {
 
         ShoppingCardResponseDTO createdShoppingCard = shoppingCardService.add(shoppingCardRequestDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -40,9 +35,7 @@ public class ShoppingCardController {
     }
 
     @PutMapping(path = "{id}", consumes = APPLICATION_JSON, produces = APPLICATION_JSON)
-    public ResponseEntity<?> updateShoppingCard(@PathVariable("id") Long id, @RequestBody ShoppingCardRequestDTO shoppingCardRequestDTO) throws CustomException {
-
-        validationService.validate(shoppingCardRequestDTO);
+    public ResponseEntity<?> updateShoppingCard(@PathVariable("id") Long id, @RequestBody ShoppingCardRequestDTO shoppingCardRequestDTO) {
 
         ShoppingCardResponseDTO updatedShoppingCard = shoppingCardService.update(id, shoppingCardRequestDTO);
 
