@@ -57,6 +57,7 @@ public class UpdateShoppingCardItemControllerTest {
                 .put("id", 1)
                 .put("title", "Lalka")
                 .put("available", true)
+                .put("price",0.99F)
                 .build();
 
         Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
