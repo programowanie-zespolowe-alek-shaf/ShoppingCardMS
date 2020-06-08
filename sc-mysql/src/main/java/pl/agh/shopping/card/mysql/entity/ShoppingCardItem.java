@@ -45,7 +45,7 @@ public class ShoppingCardItem implements Comparable<ShoppingCardItem> {
     @Getter
     @Setter
     @Column(name = "actual_price")
-    private Float actual_price;
+    private Float actualPrice;
 
     @Override
     public int compareTo(ShoppingCardItem o) {

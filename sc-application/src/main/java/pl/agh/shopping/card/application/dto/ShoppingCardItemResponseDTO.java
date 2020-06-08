@@ -15,7 +15,7 @@ public class ShoppingCardItemResponseDTO {
     private Map<String, Object> book;
     private Integer quantity;
     private LocalDate createDate;
-    private Float actual_price;
+    private Float actualPrice;
 
     public ShoppingCardItemResponseDTO(ShoppingCardItem shoppingCardItem, Map<String, Object> book) {
         this.id = shoppingCardItem.getId();
@@ -23,6 +23,6 @@ public class ShoppingCardItemResponseDTO {
         this.book = book;
         this.quantity = shoppingCardItem.getQuantity();
         this.createDate = shoppingCardItem.getCreateDate();
-        this.actual_price = shoppingCardItem.getActual_price();
+        this.actualPrice = shoppingCardItem.getActualPrice();
     }
 }

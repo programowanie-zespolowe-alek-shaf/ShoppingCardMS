@@ -57,7 +57,7 @@ public class CreateShoppingCardItemControllerTest {
                 .put("id", 1)
                 .put("title", "Lalka")
                 .put("available", true)
-                .put("price", 0.99F)
+                .put("price", 0.99)
                 .build();
 
         Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
@@ -71,7 +71,7 @@ public class CreateShoppingCardItemControllerTest {
                 .andExpect(status().is(201))
                 .andExpect(jsonPath("$.book.id").value("1"))
                 .andExpect(jsonPath("quantity").value("1"))
-                .andExpect(jsonPath("actual_price").value(0.99F));
+                .andExpect(jsonPath("actualPrice").value(0.99F));
 
         List<ShoppingCardItem> all = shoppingCardItemRepository.findAll();
         ShoppingCardItem shoppingCardItem = all.get(all.size() - 1);
@@ -91,7 +91,7 @@ public class CreateShoppingCardItemControllerTest {
                 .put("id", 1)
                 .put("title", "Lalka")
                 .put("available", true)
-                .put("price", 0.99F)
+                .put("price", 0.99)
                 .build();
 
         Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
@@ -104,7 +104,7 @@ public class CreateShoppingCardItemControllerTest {
                 .content(requestJson))
                 .andExpect(status().is(201))
                 .andExpect(jsonPath("$.book.id").value("1"))
-                .andExpect(jsonPath("actual_price").value(0.99F));
+                .andExpect(jsonPath("actualPrice").value(0.99F));
 
         List<ShoppingCardItem> all = shoppingCardItemRepository.findAll();
         ShoppingCardItem shoppingCardItem = all.get(all.size() - 1);

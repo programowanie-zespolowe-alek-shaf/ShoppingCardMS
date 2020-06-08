@@ -56,7 +56,7 @@ public class DeleteShoppingCardItemControllerTest {
                 .put("id", 1)
                 .put("title", "Lalka")
                 .put("available", true)
-                .put("price", 0.98F)
+                .put("price", 0.98)
                 .build();
 
         Mockito.when(restClient.get(MicroService.PRODUCT_MS, "/books/1", Map.class)).thenReturn(book);
