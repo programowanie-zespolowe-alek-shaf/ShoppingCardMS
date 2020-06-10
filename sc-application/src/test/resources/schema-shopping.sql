@@ -1,9 +1,9 @@
+DROP ALL OBJECTS;
+
+DROP SCHEMA IF EXISTS shopping;
 CREATE SCHEMA IF NOT EXISTS shopping;
 
-create user if not exists 'shopping'@'%' identified by 'shopping';
-grant all on shopping.* to 'shopping'@'%';
-
-USE shopping;
+SET SCHEMA shopping;
 
 CREATE TABLE shopping_card
 (
@@ -19,6 +19,6 @@ CREATE TABLE shopping_card_item
     book_id          BIGINT                            NOT NULL,
     quantity         BIGINT                            NOT NULL,
     create_date      DATE                              NOT NULL,
-    actual_price     DECIMAL(10, 2)                    NOT NULL,
+    actual_price     FLOAT                             NOT NULL,
     FOREIGN KEY (shopping_card_id) REFERENCES shopping_card (id)
 );
