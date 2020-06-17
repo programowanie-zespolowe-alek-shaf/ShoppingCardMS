@@ -17,6 +17,7 @@ import pl.agh.shopping.card.mysql.repository.ShoppingCardRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,14 +30,31 @@ public class ShoppingCardItemService {
     private final RestClient restClient;
 
     public ShoppingCardItemResponseDTO add(Long shoppingCardId, ShoppingCardItemRequestDTO shoppingCardItemRequestDTO) throws CustomException {
+
         var shoppingCart = shoppingCardRepository.findById(shoppingCardId);
         if (shoppingCart.isEmpty()) {
             throw new BadRequestException("shopping card not found");
         }
+
         var shoppingCardItem = shoppingCardItemRequestDTO.toEntity();
         shoppingCardItem.setShoppingCard(shoppingCart.get());
-
         var bookInfo = getBookInfo(shoppingCardItem);
+        Double price = (Double) bookInfo.get("price");
+        shoppingCardItem.setActualPrice(price.floatValue());
+
+        var allByShoppingCard_idAndBookId = shoppingCardItemRepository.findAllByShoppingCard_IdAndBookId(shoppingCardId, shoppingCardItem.getBookId());
+        if (allByShoppingCard_idAndBookId != null && allByShoppingCard_idAndBookId.size() > 0) {
+            ShoppingCardItem shoppingCardItemFromRepository = allByShoppingCard_idAndBookId.get(0);
+            shoppingCardItem.setId(shoppingCardItemFromRepository.getId());
+            shoppingCardItem.setQuantity(allByShoppingCard_idAndBookId.stream().mapToInt(ShoppingCardItem::getQuantity).sum() + shoppingCardItem.getQuantity());
+
+            if (allByShoppingCard_idAndBookId.size() > 1) {
+                for (int i = 1; i < allByShoppingCard_idAndBookId.size(); i++) {
+                    shoppingCardItemRepository.delete(allByShoppingCard_idAndBookId.get(i));
+                }
+            }
+        }
+
         return getItemResponseDTO(shoppingCardItemRepository.save(shoppingCardItem), bookInfo);
     }
 
@@ -63,6 +81,8 @@ public class ShoppingCardItemService {
         shoppingCardItem.setId(id);
         shoppingCardItem.setShoppingCard(shoppingCard.get());
         var bookInfo = getBookInfo(shoppingCardItem);
+        Double price = (Double) bookInfo.get("price");
+        shoppingCardItem.setActualPrice(price.floatValue());
         return getItemResponseDTO(shoppingCardItemRepository.save(shoppingCardItem), bookInfo);
     }
 
@@ -78,12 +98,18 @@ public class ShoppingCardItemService {
     public ListResponse findAll(Long shoppingCardId, int limit, int offset) {
         List<ShoppingCardItem> shoppingCardItems = shoppingCardItemRepository.findAllByShoppingCard_Id(shoppingCardId);
 
-        int count = shoppingCardItems.size();
-        shoppingCardItems = ListUtil.clampedSublist(shoppingCardItems, limit, offset);
+        var cardItemResponseDTOS = shoppingCardItems.stream()
+                .map(this::getItemResponseDTO)
+                .filter(i -> !Objects.isNull(i))
+                .collect(Collectors.toList());
 
-        var cardItemResponseDTOS = shoppingCardItems.stream().map(this::getItemResponseDTO).collect(Collectors.toList());
+        int count = cardItemResponseDTOS.stream().mapToInt(ShoppingCardItemResponseDTO::getQuantity).sum();
+        cardItemResponseDTOS = ListUtil.clampedSublist(cardItemResponseDTOS, limit, offset);
 
-        return new ListResponse(cardItemResponseDTOS, count);
+        Double totalValue = cardItemResponseDTOS.stream()
+                .mapToDouble(obj -> obj.getActualPrice() * obj.getQuantity())
+                .sum();
+        return new ListResponse(cardItemResponseDTOS, count, totalValue);
     }
 
     private Map<String, Object> getBookInfo(ShoppingCardItem shoppingCardItem) throws BadRequestException {
@@ -103,6 +129,9 @@ public class ShoppingCardItemService {
     }
 
     private ShoppingCardItemResponseDTO getItemResponseDTO(ShoppingCardItem shoppingCardItem, Map<String, Object> bookInfo) {
+        if (bookInfo == null) {
+            return null;
+        }
         return new ShoppingCardItemResponseDTO(shoppingCardItem, bookInfo);
     }
 
