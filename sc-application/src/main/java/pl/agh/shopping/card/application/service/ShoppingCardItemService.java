@@ -11,6 +11,7 @@ import pl.agh.shopping.card.common.exception.BadRequestException;
 import pl.agh.shopping.card.common.exception.CustomException;
 import pl.agh.shopping.card.common.response.ListResponse;
 import pl.agh.shopping.card.common.util.ListUtil;
+import pl.agh.shopping.card.mysql.entity.ShoppingCard;
 import pl.agh.shopping.card.mysql.entity.ShoppingCardItem;
 import pl.agh.shopping.card.mysql.repository.ShoppingCardItemRepository;
 import pl.agh.shopping.card.mysql.repository.ShoppingCardRepository;
@@ -28,6 +29,7 @@ public class ShoppingCardItemService {
     private final ShoppingCardItemRepository shoppingCardItemRepository;
     private final ShoppingCardRepository shoppingCardRepository;
     private final RestClient restClient;
+    private final AuthorizationService authorizationService;
 
     public ShoppingCardItemResponseDTO add(Long shoppingCardId, ShoppingCardItemRequestDTO shoppingCardItemRequestDTO) throws CustomException {
 
@@ -37,20 +39,23 @@ public class ShoppingCardItemService {
         }
 
         var shoppingCardItem = shoppingCardItemRequestDTO.toEntity();
-        shoppingCardItem.setShoppingCard(shoppingCart.get());
+        ShoppingCard shoppingCard = shoppingCart.get();
+
+        authorizationService.checkAuthorization(shoppingCard.getUsername());
+        shoppingCardItem.setShoppingCard(shoppingCard);
         var bookInfo = getBookInfo(shoppingCardItem);
         Double price = (Double) bookInfo.get("price");
         shoppingCardItem.setActualPrice(price.floatValue());
 
-        var allByShoppingCard_idAndBookId = shoppingCardItemRepository.findAllByShoppingCard_IdAndBookId(shoppingCardId, shoppingCardItem.getBookId());
-        if (allByShoppingCard_idAndBookId != null && allByShoppingCard_idAndBookId.size() > 0) {
-            ShoppingCardItem shoppingCardItemFromRepository = allByShoppingCard_idAndBookId.get(0);
+        var allShoppingCardItems = shoppingCardItemRepository.findAllByShoppingCard_IdAndBookId(shoppingCardId, shoppingCardItem.getBookId());
+        if (allShoppingCardItems != null && allShoppingCardItems.size() > 0) {
+            ShoppingCardItem shoppingCardItemFromRepository = allShoppingCardItems.get(0);
             shoppingCardItem.setId(shoppingCardItemFromRepository.getId());
-            shoppingCardItem.setQuantity(allByShoppingCard_idAndBookId.stream().mapToInt(ShoppingCardItem::getQuantity).sum() + shoppingCardItem.getQuantity());
+            shoppingCardItem.setQuantity(allShoppingCardItems.stream().mapToInt(ShoppingCardItem::getQuantity).sum() + shoppingCardItem.getQuantity());
 
-            if (allByShoppingCard_idAndBookId.size() > 1) {
-                for (int i = 1; i < allByShoppingCard_idAndBookId.size(); i++) {
-                    shoppingCardItemRepository.delete(allByShoppingCard_idAndBookId.get(i));
+            if (allShoppingCardItems.size() > 1) {
+                for (int i = 1; i < allShoppingCardItems.size(); i++) {
+                    shoppingCardItemRepository.delete(allShoppingCardItems.get(i));
                 }
             }
         }
@@ -61,14 +66,19 @@ public class ShoppingCardItemService {
     public ShoppingCardItemResponseDTO find(Long id) {
 
         Optional<ShoppingCardItem> shoppingCardItem = shoppingCardItemRepository.findById(id);
+
         if (shoppingCardItem.isEmpty()) {
             return null;
         }
 
-        return getItemResponseDTO(shoppingCardItem.get());
+        ShoppingCardItem cardItem = shoppingCardItem.get();
+        var username = cardItem.getShoppingCard().getUsername();
+        authorizationService.checkAuthorization(username);
+
+        return getItemResponseDTO(cardItem);
     }
 
-    public ShoppingCardItemResponseDTO update(Long shoppingCardId, Long id, ShoppingCardItemRequestDTO shoppingCardItemRequestDTO) throws BadRequestException {
+    public ShoppingCardItemResponseDTO update(Long shoppingCardId, Long id, ShoppingCardItemRequestDTO shoppingCardItemRequestDTO) throws Exception {
         if (!shoppingCardItemRepository.existsById(id)) {
             return null;
         }
@@ -76,6 +86,9 @@ public class ShoppingCardItemService {
         if (shoppingCard.isEmpty()) {
             throw new BadRequestException("shopping card not found");
         }
+
+        var card = shoppingCard.get();
+        authorizationService.checkAuthorization(card.getUsername());
 
         var shoppingCardItem = shoppingCardItemRequestDTO.toEntity();
         shoppingCardItem.setId(id);
@@ -91,6 +104,11 @@ public class ShoppingCardItemService {
         if (shoppingCardItem.isEmpty()) {
             return null;
         }
+
+        ShoppingCardItem cardItem = shoppingCardItem.get();
+        var username = cardItem.getShoppingCard().getUsername();
+        authorizationService.checkAuthorization(username);
+
         shoppingCardItemRepository.delete(shoppingCardItem.get());
         return shoppingCardItem.get();
     }

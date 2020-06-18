@@ -19,9 +19,13 @@ public class ShoppingCardService {
 
     private final ShoppingCardRepository shoppingCardRepository;
     private final ShoppingCardItemService shoppingCardItemService;
+    private final AuthorizationService authorizationService;
 
     public ShoppingCardResponseDTO add(ShoppingCardRequestDTO shoppingCardRequestDTO) {
         ShoppingCard shoppingCard = shoppingCardRequestDTO.toEntity();
+        authorizationService.checkAuthorization(shoppingCard.getUsername());
+
+
         ShoppingCard savedShoppingCard = shoppingCardRepository.save(shoppingCard);
         return getShoppingCardResponseDTO(savedShoppingCard);
     }
@@ -41,8 +45,11 @@ public class ShoppingCardService {
         if (shoppingCard.isEmpty()) {
             return null;
         }
-        shoppingCardRepository.delete(shoppingCard.get());
-        return shoppingCard.get();
+
+        ShoppingCard card = shoppingCard.get();
+        authorizationService.checkAuthorization(card.getUsername());
+        shoppingCardRepository.delete(card);
+        return card;
     }
 
     public ListResponse findAll(int limit, int offset, String username) {
@@ -69,6 +76,9 @@ public class ShoppingCardService {
         if (shoppingCardOp.isEmpty()) {
             return null;
         }
+
+        ShoppingCard card = shoppingCardOp.get();
+        authorizationService.checkAuthorization(card.getUsername());
 
         ShoppingCard shoppingCard = shoppingCardRequestDTO.toEntity();
         shoppingCard.setId(id);

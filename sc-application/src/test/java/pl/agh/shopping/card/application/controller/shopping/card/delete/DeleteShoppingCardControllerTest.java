@@ -7,12 +7,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import pl.agh.shopping.card.application.config.WithCustomUser;
 import pl.agh.shopping.card.application.dto.ShoppingCardRequestDTO;
 import pl.agh.shopping.card.application.rest.url.URLProvider;
 import pl.agh.shopping.card.mysql.entity.ShoppingCard;
@@ -31,7 +31,6 @@ import static pl.agh.shopping.card.application.config.TestUtils.mapObjectToStrin
 @SpringBootTest()
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithMockUser
 @Sql({"classpath:schema-shopping.sql", "classpath:data-shopping.sql"})
 public class DeleteShoppingCardControllerTest {
 
@@ -45,7 +44,8 @@ public class DeleteShoppingCardControllerTest {
     private URLProvider urlProvider;
 
     @Test
-    public void createAndDeleteSuccessTest() throws Exception {
+    @WithCustomUser(roles = "ADMIN")
+    public void adminCreateAndDeleteSuccessTest() throws Exception {
         ShoppingCardRequestDTO shoppingCardRequestDTO = ShoppingCardRequestDTO.builder().username("user123").build();
 
         String requestJson = mapObjectToStringJson(shoppingCardRequestDTO);
@@ -69,6 +69,57 @@ public class DeleteShoppingCardControllerTest {
 
         assertNull(shoppingCardAfterDelete);
     }
+
+    @Test
+    @WithCustomUser("user123")
+    public void loggedInCreateAndDeleteSuccessTest() throws Exception {
+        ShoppingCardRequestDTO shoppingCardRequestDTO = ShoppingCardRequestDTO.builder().username("user123").build();
+
+        String requestJson = mapObjectToStringJson(shoppingCardRequestDTO);
+
+        mvc.perform(MockMvcRequestBuilders.post("/shoppingCards").contentType(APPLICATION_JSON_UTF8)
+                .content(requestJson))
+                .andExpect(status().is(201))
+                .andExpect(jsonPath("username").value("user123"));
+
+        List<ShoppingCard> all = shoppingCardRepository.findAll();
+        ShoppingCard shoppingCard = all.get(all.size() - 1);
+        Long id = shoppingCard.getId();
+
+        assertNotNull(shoppingCard);
+        assertEquals("user123", shoppingCard.getUsername());
+
+        mvc.perform(MockMvcRequestBuilders.delete("/shoppingCards/" + id))
+                .andExpect(status().is(204));
+
+        ShoppingCard shoppingCardAfterDelete = shoppingCardRepository.findById(id).orElse(null);
+
+        assertNull(shoppingCardAfterDelete);
+    }
+
+    @Test
+    @WithCustomUser("anotherUser")
+    public void otherCreateAndDeleteSuccessTest() throws Exception {
+        ShoppingCardRequestDTO shoppingCardRequestDTO = ShoppingCardRequestDTO.builder().username("user123").build();
+
+        String requestJson = mapObjectToStringJson(shoppingCardRequestDTO);
+
+        mvc.perform(MockMvcRequestBuilders.post("/shoppingCards").contentType(APPLICATION_JSON_UTF8)
+                .content(requestJson))
+                .andExpect(status().is(403));
+    }
+
+    @Test
+    public void createAndDeleteSuccessTest() throws Exception {
+        ShoppingCardRequestDTO shoppingCardRequestDTO = ShoppingCardRequestDTO.builder().username("user123").build();
+
+        String requestJson = mapObjectToStringJson(shoppingCardRequestDTO);
+
+        mvc.perform(MockMvcRequestBuilders.post("/shoppingCards").contentType(APPLICATION_JSON_UTF8)
+                .content(requestJson))
+                .andExpect(status().is(401));
+    }
+
 
     @Test
     public void notFoundTest() throws Exception {

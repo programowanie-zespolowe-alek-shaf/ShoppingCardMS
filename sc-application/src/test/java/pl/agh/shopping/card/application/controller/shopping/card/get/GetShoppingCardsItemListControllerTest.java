@@ -8,12 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import pl.agh.shopping.card.application.config.WithCustomUser;
 import pl.agh.shopping.card.application.rest.MicroService;
 import pl.agh.shopping.card.application.rest.RestClient;
 
@@ -27,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest()
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithMockUser
 @Sql({"classpath:schema-shopping.sql", "classpath:data-shopping.sql"})
 public class GetShoppingCardsItemListControllerTest {
 
@@ -44,6 +43,30 @@ public class GetShoppingCardsItemListControllerTest {
     }
 
     @Test
+    @WithCustomUser(roles = "ADMIN")
+    public void adminNoLimitAndOffsetTest() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1/items/"))
+                .andExpect(status().is(400))
+                .andExpect(status().reason("Required int parameter 'limit' is not present"));
+    }
+
+    @Test
+    @WithCustomUser("user1")
+    public void loggedInNoLimitAndOffsetTest() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1/items/"))
+                .andExpect(status().is(400))
+                .andExpect(status().reason("Required int parameter 'limit' is not present"));
+    }
+
+    @Test
+    @WithCustomUser("anotherUser")
+    public void otherNoLimitAndOffsetTest() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1/items/"))
+                .andExpect(status().is(400))
+                .andExpect(status().reason("Required int parameter 'limit' is not present"));
+    }
+
+    @Test
     public void noOffsetTest() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/shoppingCards/1/items/")
                 .param("limit", "0"))
@@ -53,7 +76,6 @@ public class GetShoppingCardsItemListControllerTest {
 
     @Test
     public void onlyLimitAndOffsetTest() throws Exception {
-
 
         Map<String, Object> book = ImmutableMap.<String, Object>builder()
                 .put("id", 1)
@@ -114,7 +136,6 @@ public class GetShoppingCardsItemListControllerTest {
     @Test
     public void offset1Test() throws Exception {
 
-
         Map<String, Object> book = ImmutableMap.<String, Object>builder()
                 .put("id", 1)
                 .put("title", "Lalka")
@@ -142,7 +163,6 @@ public class GetShoppingCardsItemListControllerTest {
 
     @Test
     public void limit0Test() throws Exception {
-
 
         Map<String, Object> book = ImmutableMap.<String, Object>builder()
                 .put("id", 1)

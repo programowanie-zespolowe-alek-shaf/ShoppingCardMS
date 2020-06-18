@@ -3,6 +3,7 @@ package pl.agh.shopping.card.application.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.agh.shopping.card.application.dto.ShoppingCardRequestDTO;
@@ -25,6 +26,7 @@ public class ShoppingCardController {
     public ResponseEntity<?> addShoppingCard(@RequestBody ShoppingCardRequestDTO shoppingCardRequestDTO) {
 
         ShoppingCardResponseDTO createdShoppingCard = shoppingCardService.add(shoppingCardRequestDTO);
+
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdShoppingCard.getId())
@@ -49,6 +51,7 @@ public class ShoppingCardController {
     @GetMapping(value = "{id}", produces = APPLICATION_JSON)
     public ResponseEntity<ShoppingCardResponseDTO> getShoppingCard(@PathVariable("id") Long id) {
         ShoppingCardResponseDTO shoppingCard = shoppingCardService.find(id);
+
         if (shoppingCard == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -57,16 +60,17 @@ public class ShoppingCardController {
     }
 
     @GetMapping(produces = APPLICATION_JSON)
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<?> findShoppingCards(@RequestParam int limit,
                                                @RequestParam int offset,
                                                @RequestParam(required = false) String username) {
-
         ListResponse shoppingCards = shoppingCardService.findAll(limit, offset, username);
         return ResponseEntity.ok(shoppingCards);
     }
 
     @DeleteMapping(value = "{id}")
     public ResponseEntity<?> deleteShoppingCard(@PathVariable Long id) {
+
         var deletedShoppingCard = shoppingCardService.delete(id);
         if (deletedShoppingCard == null) {
             return ResponseEntity.notFound().build();

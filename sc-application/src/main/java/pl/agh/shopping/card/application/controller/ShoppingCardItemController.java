@@ -45,7 +45,7 @@ public class ShoppingCardItemController {
             @PathVariable("shoppingCardId") Long shoppingCardId,
             @PathVariable("id") Long id,
             @RequestBody @Valid ShoppingCardItemRequestDTO shoppingCardItemRequestDTO
-    ) throws CustomException {
+    ) throws Exception {
 
         var updatedShoppingCardItem = shoppingCardItemService.update(shoppingCardId, id, shoppingCardItemRequestDTO);
         if (updatedShoppingCardItem == null) {
@@ -57,7 +57,9 @@ public class ShoppingCardItemController {
 
     @GetMapping(value = "{id}", produces = APPLICATION_JSON)
     public ResponseEntity<ShoppingCardItemResponseDTO> getShoppingCardItem(@PathVariable("id") Long id) {
+
         ShoppingCardItemResponseDTO shoppingCardItem = shoppingCardItemService.find(id);
+
         if (shoppingCardItem == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -71,7 +73,6 @@ public class ShoppingCardItemController {
             @RequestParam int limit,
             @RequestParam int offset
     ) {
-
         ListResponse shoppingCardItems = shoppingCardItemService.findAll(shoppingCardId, limit, offset);
         return ResponseEntity.ok(shoppingCardItems);
     }
